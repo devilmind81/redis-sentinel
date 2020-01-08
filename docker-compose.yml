@@ -1,0 +1,36 @@
+version: '3.3'
+services:
+  redis-master:
+    image: redis:latest
+    deploy:
+      replicas: 1
+    networks:
+      - Overlay_Network
+
+  redis-slave:
+    image: redis-slave:latest
+    depends_on:
+      - redis-master
+    deploy:
+      replicas: 2
+    networks:
+      - Overlay_Network
+
+  sentinel:
+    image: sentinel:latest
+    environment:
+      - SENTINEL_DOWN_AFTER=5000
+      - SENTINEL_FAILOVER=5000
+      - REDIS_MASTER=redis-master
+    depends_on:
+      - redis-master
+      - redis-slave
+    deploy:
+      replicas: 3
+    networks:
+      - Overlay_Network
+
+networks:
+ Overlay_Network:
+    external:
+      name: Overlay_Network
